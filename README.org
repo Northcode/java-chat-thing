@@ -1,2 +1,5 @@
 * Java Oblig 4
   Yep, thats it
+  
+* also datacom oblig 4
+  Read the oblig.org file

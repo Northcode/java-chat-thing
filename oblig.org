@@ -1,0 +1,328 @@
+* Project structure
+  This project is built using gradle
+  
+  To make new jar files for each of the projects use the command:
+  #+begin_example
+  gradle jar
+  #+end_example
+
+  In the project root directory.
+  This of course requires that gradle is installed.
+  I have included the newest built versions of all the jar files in each of the project directories.
+
+  Each subproject has their own subdirectory with a symlink that points to the main src directory.
+
+#+begin_example
+
+project_root
+|-- build.gradle
+|-- client
+|   |-- build
+|   |   |-- classes
+|   |   |   `-- main
+|   |   |       `-- no
+|   |   |           `-- northcode
+|   |   |               `-- chatclient
+|   |   |                   |-- ChatProtocol.class
+|   |   |                   |-- Client.class
+|   |   |                   |-- ClientProgram.class
+|   |   |                   |-- GenSig.class
+|   |   |                   |-- Server.class
+|   |   |                   |-- Server$HandleClientThread.class
+|   |   |                   |-- ServerProgram.class
+|   |   |                   |-- Server$ServerClient.class
+|   |   |                   |-- SigTool.class
+|   |   |                   `-- VerSig.class
+|   |   |-- dependency-cache
+|   |   |-- distributions
+|   |   |   |-- client.tar
+|   |   |   `-- client.zip
+|   |   |-- libs
+|   |   |   `-- chatclient-TESTING.jar
+|   |   |-- scripts
+|   |   |   |-- client
+|   |   |   `-- client.bat
+|   |   `-- tmp
+|   |       |-- compileJava
+|   |       |   `-- emptySourcePathRef
+|   |       `-- jar
+|   |           `-- MANIFEST.MF
+|   |-- build.gradle
+|   `-- src -> ../src
+|-- oblig.org
+|-- README.org
+|-- server
+|   |-- build
+|   |   |-- classes
+|   |   |   `-- main
+|   |   |       `-- no
+|   |   |           `-- northcode
+|   |   |               `-- chatclient
+|   |   |                   |-- ChatProtocol.class
+|   |   |                   |-- Client.class
+|   |   |                   |-- ClientProgram.class
+|   |   |                   |-- GenSig.class
+|   |   |                   |-- Server.class
+|   |   |                   |-- Server$HandleClientThread.class
+|   |   |                   |-- ServerProgram.class
+|   |   |                   |-- Server$ServerClient.class
+|   |   |                   |-- SigTool.class
+|   |   |                   `-- VerSig.class
+|   |   |-- libs
+|   |   |   `-- chatserver-TESTING.jar
+|   |   |-- scripts
+|   |   |   |-- server
+|   |   |   `-- server.bat
+|   |   `-- tmp
+|   |       |-- compileJava
+|   |       |   `-- emptySourcePathRef
+|   |       `-- jar
+|   |           `-- MANIFEST.MF
+|   |-- build.gradle
+|   `-- src -> ../src
+|-- settings.gradle
+|-- sigtool
+|   |-- build
+|   |   |-- classes
+|   |   |   `-- main
+|   |   |       `-- no
+|   |   |           `-- northcode
+|   |   |               `-- chatclient
+|   |   |                   |-- ChatProtocol.class
+|   |   |                   |-- Client.class
+|   |   |                   |-- ClientProgram.class
+|   |   |                   |-- GenSig.class
+|   |   |                   |-- Server.class
+|   |   |                   |-- Server$HandleClientThread.class
+|   |   |                   |-- ServerProgram.class
+|   |   |                   |-- Server$ServerClient.class
+|   |   |                   |-- SigTool.class
+|   |   |                   `-- VerSig.class
+|   |   |-- libs
+|   |   |   `-- sigtool-TESTING.jar
+|   |   |-- scripts
+|   |   |   |-- sigtool
+|   |   |   `-- sigtool.bat
+|   |   `-- tmp
+|   |       |-- compileJava
+|   |       |   `-- emptySourcePathRef
+|   |       `-- jar
+|   |           `-- MANIFEST.MF
+|   |-- build.gradle
+|   `-- src -> ../src
+|-- src
+|   `-- main
+|       `-- java
+|           `-- no.northcode.chatclient
+|               |-- ChatProtocol.java
+|               |-- Client.java
+|               |-- ClientProgram.java
+|               |-- GenSig.java
+|               |-- Server.java
+|               |-- ServerProgram.java
+|               |-- SigTool.java
+|               `-- VerSig.java
+#+end_example
+
+Each program has its own build folder which contains the compile files,
+the jar files are in *PROJECT/build/libs/PROGRAM.jar*.
+
+There should be a script to start each program in *PROJECT/build/scripts/* 
+but I have had varying success trying to make them work.
+starting the jar files directory should work fine though.
+
+* Using a keystore
+  Keystores for the java programs are generated with the java keytool:
+#+begin_example 
+keytool -genkey -alias <alias> -keyalg RSA -validity <time> -keystore <keystoreFile>
+#+end_example
+
+Key stores can then be inspected with:
+#+being_example
+keytool -list -v -keystore <keystore>
+#+end_example
+
+it should produce output similair to:
+
+#+begin_example 
+Enter keystore password:  
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+Alias name: northcode
+Creation date: 31-Oct-2016
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=Andreas Larsen, OU=Northcode, O=Northcode, L=Bodo, ST=Nordland, C=no
+Issuer: CN=Andreas Larsen, OU=Northcode, O=Northcode, L=Bodo, ST=Nordland, C=no
+Serial number: 42fae3ed
+Valid from: Mon Oct 31 19:43:18 CET 2016 until: Sun Jan 29 19:43:18 CET 2017
+Certificate fingerprints:
+	 MD5:  16:CC:B8:29:AB:34:90:1E:5E:13:24:D1:A0:BB:76:79
+	 SHA1: D2:A4:5E:42:41:D2:2B:B5:5B:5E:E5:AB:D6:95:37:2D:18:AA:DE:62
+	 SHA256: BC:44:83:5E:70:09:39:A7:31:E0:D1:64:BD:2B:B0:91:62:D2:4B:5B:7E:9A:EC:77:D4:F1:C9:7E:98:BE:E6:88
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 1A 73 04 5A 54 EC 58 F4   A1 F5 19 E7 2E 19 41 48  .s.ZT.X.......AH
+0010: E0 F7 23 64                                        ..#d
+]
+]
+
+
+
+*******************************************
+*******************************************
+
+
+#+end_example
+
+To allow others to import your public key you can export it to a certificate file using:
+
+#+begin_example
+keytool -export -alias <alias> -keystore <keystoreFile> -rfc -file <alias>.cer
+#+end_example
+
+this should export the key in ascii format to the file <alias>.cer
+It looks something like this:
+
+#+begin_example 
+-----BEGIN CERTIFICATE-----
+MIIDfzCCAmegAwIBAgIEQvrj7TANBgkqhkiG9w0BAQsFADBwMQswCQYDVQQGEwJu
+bzERMA8GA1UECBMITm9yZGxhbmQxDTALBgNVBAcTBEJvZG8xEjAQBgNVBAoTCU5v
+cnRoY29kZTESMBAGA1UECxMJTm9ydGhjb2RlMRcwFQYDVQQDEw5BbmRyZWFzIExh
+cnNlbjAeFw0xNjEwMzExODQzMThaFw0xNzAxMjkxODQzMThaMHAxCzAJBgNVBAYT
+Am5vMREwDwYDVQQIEwhOb3JkbGFuZDENMAsGA1UEBxMEQm9kbzESMBAGA1UEChMJ
+Tm9ydGhjb2RlMRIwEAYDVQQLEwlOb3J0aGNvZGUxFzAVBgNVBAMTDkFuZHJlYXMg
+TGFyc2VuMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlGyz0s3c3Qn+
+VqBEp9ZXt2HjB2/OHTMrn5qS+a98IZAZ4q/OvJ2/hYOtZ8kQo7bXfHLuIA/L2lsg
+5Obp8LaGk/+btQ3Mp2CZ+6qjF6rraW/lsmOTXHsPI790E6K3Wq/4GJYSX/ZwcySg
+vDaqFI7QatxvfAuE7itZiTSCIi4aMHw5aWbvbhddHRzF+wkPI9MsXWPnkO391raD
+sp0UtYzLrYtX+HGB7mMN7xOcons/aUC5IDNE13u+oI4AJ1cKW/uQ/e4rCGC4zSWL
+91A/N0XMRJKLFQAy9HdEQf13btk/Nzo9k8GR8hvRJAbDY+4Mtx+NTURu8jUpVHUl
+0v1Rq3u5jQIDAQABoyEwHzAdBgNVHQ4EFgQUGnMEWlTsWPSh9RnnLhlBSOD3I2Qw
+DQYJKoZIhvcNAQELBQADggEBAAvhS5eHSVbE5znXU4ek8aePnMRBls9Wh+pN6VQL
+uAyFClYiP2d3ByMynrPdarXtM/w7Q+8QzEE9mB5YxiP+uYmCbSjjhnsb+pqqsTSA
+Wxe79Hx2pCt90/ub8xVF6X04BWDT19opzocsZrhTJwyCBjoPIrMDqVw1u2Md+BPY
+NXnfy7FPlhlF8E4rchzKRBke+7sEan5rmOn983GtB+WX7YlYM1IfwtvxMMtJgkhk
+ifQ/Tcr1iWRnqCfD0TGj8hmr4Zz6rJ37oF5I9PXUM+KlqMiRHNaA7h2GGVn4O9VY
+fuZrCXPU57vgkcOPyMPFUjiuyLkrEmmgEJ+GhSO55JWpM2Y=
+-----END CERTIFICATE-----
+#+end_example
+
+If you now recieve one of these certificates you can import them into your own keystore using:
+
+#+begin_example
+keytool -import -alias <alias> -file <alias>.cer -keystore <keystoreFile>
+#+end_example
+
+This will import the certificate into the keystore. 
+To view the keystore you can now list the keys out again to see the imported key:
+
+#+begin_example 
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+Alias name: northcode
+Creation date: 01-Nov-2016
+Entry type: trustedCertEntry
+
+Owner: CN=Andreas Larsen, OU=Northcode, O=Northcode, L=Bodo, ST=Nordland, C=no
+Issuer: CN=Andreas Larsen, OU=Northcode, O=Northcode, L=Bodo, ST=Nordland, C=no
+Serial number: 42fae3ed
+Valid from: Mon Oct 31 19:43:18 CET 2016 until: Sun Jan 29 19:43:18 CET 2017
+Certificate fingerprints:
+	 MD5:  16:CC:B8:29:AB:34:90:1E:5E:13:24:D1:A0:BB:76:79
+	 SHA1: D2:A4:5E:42:41:D2:2B:B5:5B:5E:E5:AB:D6:95:37:2D:18:AA:DE:62
+	 SHA256: BC:44:83:5E:70:09:39:A7:31:E0:D1:64:BD:2B:B0:91:62:D2:4B:5B:7E:9A:EC:77:D4:F1:C9:7E:98:BE:E6:88
+	 Signature algorithm name: SHA256withRSA
+	 Version: 3
+
+Extensions: 
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 1A 73 04 5A 54 EC 58 F4   A1 F5 19 E7 2E 19 41 48  .s.ZT.X.......AH
+0010: E0 F7 23 64                                        ..#d
+]
+]
+
+
+
+*******************************************
+*******************************************
+
+
+#+end_example
+
+As you can see this is different from the previous one, 
+where the *Entry Type* is set to *PrivateKeyEntry* 
+this new keystore with only the public key imported says *trustedCertEntry*.
+
+* SigTool - sign and verify files
+  This program creates signatures for files using private keys,
+  and can then be verified with the corresponding public keys.
+
+** Signing a file:
+   To sign a file you need a keystore with a private key and a file to sign.
+   
+#+begin_example 
+java -jar sigtool.jar sign keystore.jks:password mykey mykeypassword file.txt
+#+end_example
+
+This will sign the file *file.txt* using the key *mykey* which has password *mykeypassword*
+in the keystore *keystore.jks*, where the keystore has password *password*.
+
+It will create a new file *file.txt.sig* which contains the signature of *file.txt*.
+
+You can now send *file.txt.sig* and *file.txt* to someone who wishes to...
+
+** Verify a signature
+
+   To verify a signature of a file. You use the *verify* command in the *sigtool* program.
+
+#+begin_example 
+java -jar sigtool verify keystore.jks:password mykey file.txt.sig file.txt
+#+end_example 
+
+This will verify if the *file.txt.sig* was signed to *file.txt* with the key *mykey*.
+
+If the signature was correct it will output:
+
+#+begin_example
+signature verifies: true
+#+end_example
+
+if not it outputs *false*, or an error if any of the input arguments where wrong.
+
+* SSL chat
+
+The server and chat programs are pretty straight forward.
+The server needs a keystore with its own private and public key,
+and the client needs a keystore with the servers public key.
+
+To run the server:
+
+#+begin_example 
+java -jar server.jar port keystore:keystorePassword
+#+end_example
+
+To connect a client:
+
+#+begin_example 
+java -jar client.jar host port keystore:keystorePassword
+#+end_example
+

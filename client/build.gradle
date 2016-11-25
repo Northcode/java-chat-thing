@@ -6,6 +6,11 @@ targetCompatibility = '1.8'
 
 mainClassName = 'no.northcode.chatclient.ClientProgram'
 
+dependencies {
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.55'
+    runtime group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.55'
+}
+
 repositories {
     mavenCentral()
 }

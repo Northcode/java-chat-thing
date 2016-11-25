@@ -8,13 +8,17 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Random;
+import java.security.*;
+import java.security.cert.*;
+import java.security.spec.*;
+import javax.net.ssl.*;
 
 public class Client
 {
     DataOutputStream toServer;
     DataInputStream fromServer;
 
-    Socket socket;
+    SSLSocket socket;
 
     Scanner input;
 
@@ -22,10 +26,32 @@ public class Client
 	input = new Scanner(System.in);
     }
 
+    public void connect(String host, String port, String keystore) {
+	connect(host, Integer.parseInt(port),keystore);
+    }
     
-    public void connect(String host, int port) {
+    public void connect(String host, int port, String keystore) {
 	try {
-	    socket = new Socket(host,port);
+	    String[] keystore_parts = keystore.split(":");
+	    final String keystore_path = keystore_parts[0];
+	    final String keystore_pass = keystore_parts[1];
+	    
+	    KeyStore ks = KeyStore.getInstance("JKS");
+	    ks.load(new FileInputStream(keystore_path), keystore_pass.toCharArray());
+
+	    KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+	    kmf.init(ks, keystore_pass.toCharArray());
+
+	    TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+	    tmf.init(ks);
+
+	    SSLContext sc = SSLContext.getInstance("TLS");
+	    TrustManager[] trustManagers = tmf.getTrustManagers();
+	    sc.init(kmf.getKeyManagers(), trustManagers, null);
+
+	    SSLSocketFactory ssf = sc.getSocketFactory();
+	    socket = (SSLSocket) ssf.createSocket(host,port);
+	    // socket = new Socket(host,port);
 
 	    System.out.println("Connected to: " + socket.getInetAddress().getCanonicalHostName());
 
@@ -59,7 +85,7 @@ public class Client
 				String username = fromServer.readUTF();
 				String message = fromServer.readUTF();
 
-				System.out.println(String.format("%s: %s", username, message));
+				System.out.println(String.format("\r\n%s: %s", username, message));
 			    }
 			    Thread.sleep(250);
 			}
@@ -75,7 +101,12 @@ public class Client
 	    Thread sendthread = new Thread(() -> {
 		    try {
 			while (true) {
+			    // if (!input.hasNextLine()) {
+			    // 	Thread.sleep(100);
+			    // 	continue;
+			    // }
 			    System.out.print("> ");
+
 			    String message = input.nextLine();
 
 			    if (message.startsWith("/nick ")) {
@@ -99,6 +130,8 @@ public class Client
 	    sendthread.start();
 	    
 	} catch (IOException ex) {
+	    ex.printStackTrace();
+	} catch (Exception ex) {
 	    ex.printStackTrace();
 	}
     }

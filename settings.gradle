@@ -1,1 +1,3 @@
-include 'client','server'
+include 'server'
+include 'client'
+include 'sigtool'

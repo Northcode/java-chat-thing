@@ -5,6 +5,10 @@ import java.net.*;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Random;
+import java.security.*;
+import java.security.cert.*;
+import java.security.spec.*;
+import javax.net.ssl.*;
 
 import no.northcode.chatclient.ChatProtocol;
 
@@ -15,9 +19,15 @@ public class Server
     ArrayList<ServerClient> clients;
     ServerSocket serverSocket;
 
-    public Server(int port) {
+    String keystore_path, keystore_pass;
+
+    public Server(int port, String keystore) {
 	this.port = port;
 	clients = new ArrayList<ServerClient>();
+
+	String[] keystore_parts = keystore.split(":");
+	keystore_path  = keystore_parts[0];
+	keystore_pass  = keystore_parts[1];
     }
 
     public void start() {
@@ -26,23 +36,48 @@ public class Server
 
 	Thread serverthread = new Thread(() -> {
 		try {
-		    serverSocket = new ServerSocket(port);
+		    // serverSocket = new ServerSocket(port);
+	    
+		    KeyStore ks = KeyStore.getInstance("JKS");
+		    ks.load(new FileInputStream(keystore_path), keystore_pass.toCharArray());
+
+		    KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+		    kmf.init(ks, keystore_pass.toCharArray());
+
+		    TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+		    tmf.init(ks);
+
+		    SSLContext sc = SSLContext.getInstance("TLS");
+		    TrustManager[] trustManagers = tmf.getTrustManagers();
+		    sc.init(kmf.getKeyManagers(), trustManagers, null);
+
+		    SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+		    serverSocket = (SSLServerSocket) ssf.createServerSocket(port);
 
 		    while (true) {
 			// wait for connection...
-			Socket clientSocket = serverSocket.accept();
+			SSLSocket clientSocket = (SSLSocket)serverSocket.accept();
 
 			ServerClient client = new ServerClient(clientSocket, clients.size(),this);
 			clients.add(client);
 			print("New client connected from: " + client.getConnectionInfo());
 			client.start();
+
 		    }
 
 		} catch (IOException ex) {
 		    ex.printStackTrace();
+		} catch (Exception ex) {
+		    ex.printStackTrace();
 		}
 	    });
 	serverthread.start();
+    }
+
+    public void broadcastMessage(String message) {
+	for (ServerClient client : clients) {
+	    client.broadcastMessage(message);
+	}
     }
 
     public void sendMessage(ServerClient from, String message) {
@@ -59,7 +94,7 @@ public class Server
     }
 
     class ServerClient {
-	private Socket socket;
+	private SSLSocket socket;
 	private Thread clientthread;
 	private HandleClientThread clienthandler;
 	private int clientid;
@@ -67,7 +102,7 @@ public class Server
 
 	public String nick;
 
-	public ServerClient(Socket clientSocket, int clientid, Server parent) {
+	public ServerClient(SSLSocket clientSocket, int clientid, Server parent) {
 	    this.socket = clientSocket;
 	    this.clientid = clientid;
 	    this.parent = parent;
@@ -80,10 +115,15 @@ public class Server
 		clientthread = new Thread(clienthandler);
 	    }
 	    clientthread.start();
+
 	}
 
 	public void sendMessage(ServerClient client,String message) {
 	    clienthandler.sendMessage(client,message);
+	}
+
+	public void broadcastMessage(String message) {
+	    clienthandler.broadcastMessage(message);
 	}
 
 	public Socket getSocket() {
@@ -125,6 +165,16 @@ public class Server
 	    }
 	}
 
+	public void broadcastMessage(String message) {
+	    try {
+		outputToClient.writeInt(ChatProtocol.MESSAGE);
+		outputToClient.writeUTF("server");
+		outputToClient.writeUTF(message);
+	    } catch (IOException ex) {
+		ex.printStackTrace();
+	    }
+	}
+
 	public void run() {
 	    recievedHandshake = false;
 	    System.out.println(String.format("started thread for client: %d", parent.getClientId()));
@@ -145,22 +195,42 @@ public class Server
 			outputToClient.writeInt(handshake);
 			
 			recievedHandshake = true;
-		    } else if (msg_type == ChatProtocol.NICK) {
-			String nick = inputFromClient.readUTF();
-			parent.nick = nick;
-		    } else if (msg_type == ChatProtocol.MESSAGE) {
-			String message = inputFromClient.readUTF();
-			System.out.println(String.format("Recieved message: %s, from client %d", message, parent.getClientId()));
-			parent.parent.sendMessage(parent, message);
+			parent.parent.broadcastMessage(String.format("Client %d joined", parent.getClientId()));
 		    }
+		    if (recievedHandshake) {
+			if (msg_type == ChatProtocol.NICK) {
+			    String nick = inputFromClient.readUTF();
+			    String oldnick = parent.nick;
+			    parent.nick = nick;
+			    parent.parent.broadcastMessage(String.format("%s is now known as %s", oldnick, nick));
+			} else if (msg_type == ChatProtocol.MESSAGE) {
+			    String message = inputFromClient.readUTF();
+			    System.out.println(String.format("Recieved message: %s, from client %d", message, parent.getClientId()));
+			    parent.parent.sendMessage(parent, message);
+			}
+		    } else {
+			System.out.println("Recieved message before handshake");
+		    }
+		    
 
 		    Thread.sleep(250);
 		}
 
+	    } catch (EOFException ex) {
+		System.out.println("Got EOF, client disconnected!");
 	    } catch (IOException ex) {
 		ex.printStackTrace();
 	    } catch (InterruptedException ex) {
 		ex.printStackTrace();
+	    } finally {
+		System.out.println("trying to remove client");
+
+		if(parent.parent.clients.remove(parent)) {
+		    System.out.println("Sucess!");
+		} else {
+		    System.out.println("Failed!");
+		    System.out.println("Server will most likely fail now because it will try to send a message to a client that doesn't exist....");
+		}
 	    }
 	    
 	}

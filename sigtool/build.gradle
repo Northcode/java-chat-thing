@@ -4,10 +4,9 @@ apply plugin: 'application'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-mainClassName = 'no.northcode.chatclient.ServerProgram'
+mainClassName = 'no.northcode.chatclient.SigTool'
 
 dependencies {
-    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.55'
 }
 
 repositories {
@@ -15,7 +14,7 @@ repositories {
 }
 
 jar {
-    baseName = 'chatserver'
+    baseName = 'sigtool'
     version ='TESTING'
     manifest { attributes 'Main-Class':mainClassName }
 }
