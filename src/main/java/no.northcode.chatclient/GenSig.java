@@ -44,8 +44,6 @@ public class GenSig {
 
 		// try to load key from keystore
 		Key privkey = ks.getKey(alias, password.toCharArray());
-		// load public key from keystore
-		PublicKey pubkey = ks.getCertificate(alias).getPublicKey();
 
 		// get a signature instance of type SHA1 with RSA
 		Signature rsa = Signature.getInstance("SHA1withRSA");
@@ -74,12 +72,6 @@ public class GenSig {
 		FileOutputStream sigfos = new FileOutputStream(args[4] + ".sig");
 		sigfos.write(realSig);
 		sigfos.close();
-
-		/* save the public key in a file */
-		// byte[] key = pubkey.getEncoded();
-		// FileOutputStream keyfos = new FileOutputStream("suepk");
-		// keyfos.write(key);
-		// keyfos.close();
 
 	    } catch (Exception ex) {
 		System.out.println("Error: " + ex.getMessage());
