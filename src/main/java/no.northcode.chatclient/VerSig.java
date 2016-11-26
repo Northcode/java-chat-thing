@@ -18,19 +18,6 @@ public class VerSig {
 	}
 	else try{
 
-		/* import encoded public key */
-
-		// FileInputStream keyfis = new FileInputStream(args[0]);
-		// byte[] encKey = new byte[keyfis.available()];  
-		// keyfis.read(encKey);
-
-		// keyfis.close();
-
-		// X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encKey);
-
-		// KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-		// PublicKey pubKey = keyFactory.generatePublic(pubKeySpec);
-
 		String[] keystore_parts = args[1].split(":");
 		String keystore_path  = keystore_parts[0];
 		String keystore_pass  = keystore_parts[1];
